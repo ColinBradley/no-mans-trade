@@ -1,0 +1,7 @@
+{
+    "cSpell.words": [],
+    "files.exclude": {
+        "**/obj": true,
+        "**/bin": true
+    },
+}
