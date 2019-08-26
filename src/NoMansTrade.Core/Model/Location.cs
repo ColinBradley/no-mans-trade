@@ -1,9 +1,5 @@
-﻿using NoMansTrade.Core.Serialization;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Collections.ObjectModel;
-using System.Text;
-using System.Text.Json.Serialization;
 
 namespace NoMansTrade.Core.Model
 {

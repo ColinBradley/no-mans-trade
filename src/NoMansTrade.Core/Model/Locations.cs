@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.Linq;
 
 namespace NoMansTrade.Core.Model
@@ -36,8 +34,9 @@ namespace NoMansTrade.Core.Model
                     }
                 }
 
-                this.Add(instance);
                 mLocationsByName.Add(name, instance);
+
+                this.Add(instance);
 
                 return;
             }

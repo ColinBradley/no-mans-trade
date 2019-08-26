@@ -43,6 +43,12 @@
                     Width="200"
                     Height="100"/>
             </Canvas>
+
+            <Label Content="{Binding Current.Value.StateMessage.Value}"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Bottom"
+                   FontWeight="Bold"
+                   Padding="5"/>
         </Grid>
     </Grid>
 </UserControl>

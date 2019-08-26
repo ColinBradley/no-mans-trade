@@ -1,20 +1,22 @@
 ﻿using NoMansTrade.App.ViewModels;
 using System;
-using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Text;
 using System.Windows.Input;
+using System.Windows.Threading;
 
 namespace NoMansTrade.App.Commands
 {
     internal class NextImageCommand : ICommand, IDisposable
     {
+        private readonly Dispatcher mDispatcher;
         private readonly DirectoryImages mImages;
 
         public event EventHandler? CanExecuteChanged;
 
         public NextImageCommand(DirectoryImages images)
         {
+            mDispatcher = Dispatcher.CurrentDispatcher;
+
             mImages = images;
             ((INotifyCollectionChanged)images.Images).CollectionChanged += this.mImagesImages_CollectionChanged;
             images.Current.PropertyChanged += this.Current_PropertyChanged;
@@ -37,7 +39,8 @@ namespace NoMansTrade.App.Commands
 
         private void mImagesImages_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            this.CanExecuteChanged?.Invoke(this, EventArgs.Empty);
+            mDispatcher.BeginInvoke(
+                () => this.CanExecuteChanged?.Invoke(this, EventArgs.Empty));
         }
 
         public void Dispose()

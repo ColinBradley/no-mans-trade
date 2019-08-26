@@ -1,19 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Text;
+﻿using System.ComponentModel;
+using System.Windows.Threading;
 
 namespace NoMansTrade.App.Support
 {
     public class ObservableProperty<T> : INotifyPropertyChanged
     {
         private static readonly PropertyChangedEventArgs sValueArgs = new PropertyChangedEventArgs(nameof(Value));
+        private readonly Dispatcher mDispatcher;
         private T mValue;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
         public ObservableProperty(T value)
         {
+            mDispatcher = Dispatcher.CurrentDispatcher;
+
             mValue = value;
         }
 
@@ -32,7 +33,8 @@ namespace NoMansTrade.App.Support
 
                 mValue = value;
 
-                this.PropertyChanged?.Invoke(this, sValueArgs);
+                mDispatcher.BeginInvoke(
+                    () => this.PropertyChanged?.Invoke(this, sValueArgs));
             }
         }
     }

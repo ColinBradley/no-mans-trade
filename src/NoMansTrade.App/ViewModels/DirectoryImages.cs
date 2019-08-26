@@ -1,14 +1,10 @@
 ﻿using NoMansTrade.App.Commands;
 using NoMansTrade.App.Support;
 using NoMansTrade.Core.Model;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Windows.Input;
 
 namespace NoMansTrade.App.ViewModels
@@ -16,13 +12,13 @@ namespace NoMansTrade.App.ViewModels
     internal class DirectoryImages
     {
         private readonly ObservableCollection<Image> mImagesSource = new ObservableCollection<Image>();
-        private readonly string mPath;
+        private readonly Settings mSettings;
 
         private FileSystemWatcher? mWatcher;
 
-        public DirectoryImages(string path, Locations locations, Settings settings)
+        public DirectoryImages(Locations locations, Settings settings)
         {
-            mPath = path;
+            mSettings = settings;
 
             this.Images = new ReadOnlyObservableCollection<Image>(mImagesSource);
             this.Current = new ObservableProperty<Image?>(mImagesSource.FirstOrDefault());
@@ -32,10 +28,17 @@ namespace NoMansTrade.App.ViewModels
             this.NextImage = new NextImageCommand(this);
             this.PreviousImage = new PreviousImageCommand(this);
             this.AnalyzeImage = new AnalyzeImageCommand(this, locations, settings);
+
+            mSettings.ScanDirectory.PropertyChanged += this.ScanDirectory_PropertyChanged;
+        }
+
+        private void ScanDirectory_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            this.Initialize();
         }
 
         public ObservableProperty<Image?> Current { get; private set; }
-
+        
         public ReadOnlyObservableCollection<Image> Images { get; }
 
         public ICommand NextImage { get; }
@@ -46,7 +49,12 @@ namespace NoMansTrade.App.ViewModels
 
         public void Initialize()
         {
-            mWatcher = new FileSystemWatcher(mPath, "*.png");
+            if (mWatcher != null)
+            {
+                mWatcher.Dispose();
+            }
+
+            mWatcher = new FileSystemWatcher(mSettings.ScanDirectory.Value, "*.png");
             mWatcher.Created += this.mWatcher_Changed;
             mWatcher.Deleted += this.mWatcher_Changed;
             mWatcher.Changed += this.mWatcher_Changed;
@@ -69,7 +77,7 @@ namespace NoMansTrade.App.ViewModels
         {
             var unusedImages = mImagesSource.ToDictionary(i => i.FilePath);
 
-            foreach (var filePath in Directory.GetFiles(mPath, "*.png"))
+            foreach (var filePath in Directory.GetFiles(mSettings.ScanDirectory.Value, "*.png", SearchOption.TopDirectoryOnly))
             {
                 if (unusedImages.Remove(filePath))
                 {

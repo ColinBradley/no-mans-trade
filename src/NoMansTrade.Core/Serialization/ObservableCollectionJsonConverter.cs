@@ -3,20 +3,19 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace NoMansTrade.Core.Serialization
 {
-    internal class ObservableCollectionJsonConverter : JsonConverter<ICollection<Item>>
+    internal class ObservableCollectionJsonConverter : JsonConverter<ObservableCollection<Item>>
     {
         public override bool CanConvert(Type typeToConvert)
         {
             return typeToConvert.IsAssignableFrom(typeof(ObservableCollection<Item>));
         }
 
-        public override ICollection<Item> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override ObservableCollection<Item> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             var items = new ObservableCollection<Item>();
 
@@ -24,7 +23,7 @@ namespace NoMansTrade.Core.Serialization
             return items;
         }
 
-        public override void Write(Utf8JsonWriter writer, ICollection<Item> value, JsonSerializerOptions options)
+        public override void Write(Utf8JsonWriter writer, ObservableCollection<Item> value, JsonSerializerOptions options)
         {
             JsonSerializer.Serialize(writer, value.ToArray(), options);
         }

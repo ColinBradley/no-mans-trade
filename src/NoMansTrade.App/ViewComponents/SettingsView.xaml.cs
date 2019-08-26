@@ -3,11 +3,11 @@
 namespace NoMansTrade.App.ViewComponents
 {
     /// <summary>
-    /// Interaction logic for DataView.xaml
+    /// Interaction logic for SettingsView.xaml
     /// </summary>
-    public partial class DataView : UserControl
+    public partial class SettingsView : UserControl
     {
-        public DataView()
+        public SettingsView()
         {
             this.InitializeComponent();
         }

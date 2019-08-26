@@ -15,6 +15,7 @@ namespace NoMansTrade.App.Commands
         private readonly DirectoryImages mImages;
         private readonly Locations mLocations;
         private readonly Settings mSettings;
+        private Image? mCurrentImageModel;
 
         public event EventHandler? CanExecuteChanged;
 
@@ -29,18 +30,23 @@ namespace NoMansTrade.App.Commands
 
         public bool CanExecute(object parameter)
         {
-            return mImages.Current.Value != null;
+            return mImages.Current.Value != null 
+                && !mImages.Current.Value.IsAnalyzing.Value 
+                && !mImages.Current.Value.IsAnalyzed.Value;
         }
 
         public void Execute(object parameter)
         {
             var dispatcher = Dispatcher.CurrentDispatcher;
+            var imageViewModel = mImages.Current.Value!;
+
+            imageViewModel.IsAnalyzing.Value = true;
 
             Task.Run(async () =>
             {
                 var locations = ((SKRectI items, SKRectI location))parameter;
 
-                var fullImage = SKImage.FromEncodedData(mImages.Current.Value!.FilePath);
+                var fullImage = SKImage.FromEncodedData(imageViewModel.FilePath);
 
                 using var itemsImageStream = new MemoryStream();
 
@@ -67,6 +73,9 @@ namespace NoMansTrade.App.Commands
 
                 await dispatcher.BeginInvoke(() =>
                 {
+                    imageViewModel.IsAnalyzing.Value = false;
+                    imageViewModel.IsAnalyzed.Value = true;
+
                     mLocations.AddLocation(locationText, itemsResult.items, itemsResult.isBuying);
                 });
             });
@@ -75,11 +84,37 @@ namespace NoMansTrade.App.Commands
         private void ImagesCurrent_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             this.CanExecuteChanged?.Invoke(this, EventArgs.Empty);
+
+            if (mCurrentImageModel != null)
+            {
+                mCurrentImageModel.IsAnalyzed.PropertyChanged -= this.IsAnalyzed_PropertyChanged;
+                mCurrentImageModel.IsAnalyzing.PropertyChanged -= this.IsAnalyzed_PropertyChanged;
+            }
+
+            mCurrentImageModel = mImages.Current.Value;
+            if (mCurrentImageModel == null)
+            {
+                return;
+            }
+
+            mCurrentImageModel.IsAnalyzed.PropertyChanged += this.IsAnalyzed_PropertyChanged;
+            mCurrentImageModel.IsAnalyzing.PropertyChanged += this.IsAnalyzed_PropertyChanged;
+        }
+
+        private void IsAnalyzed_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            this.CanExecuteChanged?.Invoke(this, EventArgs.Empty);
         }
 
         public void Dispose()
         {
             mImages.Current.PropertyChanged -= this.ImagesCurrent_PropertyChanged;
+            
+            if (mCurrentImageModel != null)
+            {
+                mCurrentImageModel.IsAnalyzed.PropertyChanged -= this.IsAnalyzed_PropertyChanged;
+                mCurrentImageModel.IsAnalyzing.PropertyChanged -= this.IsAnalyzed_PropertyChanged;
+            }
         }
     }
 }
