@@ -1,31 +1,34 @@
-﻿using NoMansTrade.Core.Model;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using NoMansTrade.Core.Model;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace NoMansTrade.Core.Serialization
 {
-    internal class ObservableCollectionJsonConverter : JsonConverter<ObservableCollection<Item>>
+    internal class ObservableCollectionJsonConverter : Newtonsoft.Json.JsonConverter
     {
-        public override bool CanConvert(Type typeToConvert)
+        public override bool CanConvert(Type objectType)
         {
-            return typeToConvert.IsAssignableFrom(typeof(ObservableCollection<Item>));
+            return objectType.IsAssignableFrom(typeof(ObservableCollection<Item>));
         }
 
-        public override ObservableCollection<Item> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, Newtonsoft.Json.JsonSerializer serializer)
         {
-            var items = new ObservableCollection<Item>();
+            var items = JArray.Load(reader).ToObject<Item[]>();
 
-            
-            return items;
+            foreach (var item in items)
+            {
+                ((ObservableCollection<Item>)existingValue).Add(item);
+            }
+
+            return existingValue;
         }
 
-        public override void Write(Utf8JsonWriter writer, ObservableCollection<Item> value, JsonSerializerOptions options)
+        public override void WriteJson(JsonWriter writer, object value, Newtonsoft.Json.JsonSerializer serializer)
         {
-            JsonSerializer.Serialize(writer, value.ToArray(), options);
+            writer.WriteStartArray();
+            writer.WriteEndArray();
         }
     }
 }

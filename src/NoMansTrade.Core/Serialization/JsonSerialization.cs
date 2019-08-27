@@ -1,15 +1,22 @@
-﻿using NoMansTrade.Core.Model;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
+using NoMansTrade.Core.Model;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace NoMansTrade.Core.Serialization
 {
     public static class JsonSerialization
     {
-        private static readonly JsonSerializerOptions sJsonOptions = new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+        private static readonly JsonSerializerSettings sJsonOptions = new JsonSerializerSettings()
+        {
+            ContractResolver = new DefaultContractResolver()
+            {
+                NamingStrategy = new CamelCaseNamingStrategy()
+            }
+        };
 
         static JsonSerialization()
         {
@@ -21,16 +28,16 @@ namespace NoMansTrade.Core.Serialization
             using var reader = new StreamReader(data, Encoding.UTF8, leaveOpen: true);
             var json = await reader.ReadToEndAsync();
 
-            return JsonSerializer.Deserialize<Location[]>(json, sJsonOptions);
+            return JsonConvert.DeserializeObject<Location[]>(json, sJsonOptions);
         }
 
         public static void Store(IEnumerable<Location> data, Stream stream)
         {
             using var writer = new StreamWriter(stream, Encoding.UTF8, leaveOpen: true);
 
-            var json = JsonSerializer.Serialize(data, sJsonOptions);
+            var test = JsonConvert.SerializeObject(data);
 
-            writer.Write(json);
+            writer.Write(test);
         }
     }
 }
