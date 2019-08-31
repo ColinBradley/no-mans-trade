@@ -37,6 +37,7 @@
                 <Canvas>
                     <localControls:DragSelectionBox
                         Rectangle="{Binding ItemsRectangle.Value, Mode=TwoWay}"
+                        Header="Items"
                         Canvas.Left="400"
                         Canvas.Top="30"
                         Width="200"
@@ -44,6 +45,7 @@
                     <localControls:DragSelectionBox
                         Rectangle="{Binding LocationRectangle.Value, Mode=TwoWay}"
                         Color="OrangeRed"
+                        Header="Location"
                         Canvas.Left="50"
                         Canvas.Top="200"
                         Width="200"

@@ -44,9 +44,9 @@ namespace NoMansTrade.App.ViewModels
 
         public ObservableProperty<Image?> Current { get; private set; }
 
-        public ObservableProperty<SKRectI> ItemsRectangle { get; } = new ObservableProperty<SKRectI>(new SKRectI(50, 50, 100, 100));
+        public ObservableProperty<SKRectI> ItemsRectangle { get; } = new ObservableProperty<SKRectI>(new SKRectI(200, 50, 400, 200));
 
-        public ObservableProperty<SKRectI> LocationRectangle { get; } = new ObservableProperty<SKRectI>(new SKRectI(60, 60, 110, 110));
+        public ObservableProperty<SKRectI> LocationRectangle { get; } = new ObservableProperty<SKRectI>(new SKRectI(50, 250, 500, 350));
 
         internal void SetAnalyzedImages(string[] analyzedNames)
         {

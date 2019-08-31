@@ -32,6 +32,21 @@
                    StrokeThickness="3"
                    StrokeDashArray="10,5"/>
 
+        <TextBlock Text="{Binding Header, ElementName=Self}"
+                   Grid.Column="1"
+                   Grid.Row="1"
+                   HorizontalAlignment="Left"
+                   VerticalAlignment="Top"
+                   Foreground="{Binding Color, ElementName=Self}"
+                   FontWeight="Bold"
+                   FontSize="16"
+                   Margin="0,-35,0,0">
+            
+            <TextBlock.Effect>
+                <DropShadowEffect Color="Black" ShadowDepth="0" BlurRadius="20"/>
+            </TextBlock.Effect>
+        </TextBlock>
+
         <Thumb Name="MoveThumb"
                Grid.Column="1"
                Grid.Row="1"

@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:NoMansTrade.App"
         xmlns:vc="clr-namespace:NoMansTrade.App.ViewComponents"
         mc:Ignorable="d"
-        Title="No Man's Trade" Height="600" Width="1500">
+        Title="No Man's Trade" Height="600" Width="800">
     <Grid>
         <TabControl>
             <TabItem Header="Images">
