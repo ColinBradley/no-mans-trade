@@ -7,7 +7,8 @@
              xmlns:model="clr-namespace:NoMansTrade.Core.Model;assembly=NoMansTrade.Core"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
+    <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                  VerticalScrollBarVisibility="Auto">
         <ItemsControl ItemsSource="{Binding}">
             <ItemsControl.Resources>
                 <DataTemplate DataType="{x:Type model:Location}">
@@ -33,5 +34,5 @@
                 </DataTemplate>
             </ItemsControl.Resources>
         </ItemsControl>
-    </Grid>
+    </ScrollViewer>
 </UserControl>

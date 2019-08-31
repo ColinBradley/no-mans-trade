@@ -6,19 +6,23 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Input;
+using System.Windows.Threading;
 
 namespace NoMansTrade.App.ViewModels
 {
     internal class DirectoryImages : System.IDisposable
     {
         private readonly ObservableCollection<Image> mImagesSource = new ObservableCollection<Image>();
+        private readonly Dispatcher mDispatcher;
         private readonly Settings mSettings;
 
         private FileSystemWatcher? mWatcher;
 
         public DirectoryImages(Locations locations, Settings settings)
         {
+            mDispatcher = Dispatcher.CurrentDispatcher;
             mSettings = settings;
 
             this.Images = new ReadOnlyObservableCollection<Image>(mImagesSource);
@@ -66,7 +70,7 @@ namespace NoMansTrade.App.ViewModels
 
         public ICommand AnalyzeImage { get; }
 
-        public void Initialize()
+        public Task Initialize()
         {
             if (mWatcher != null)
             {
@@ -79,12 +83,12 @@ namespace NoMansTrade.App.ViewModels
             mWatcher.Changed += this.mWatcher_Changed;
             mWatcher.EnableRaisingEvents = true;
 
-            this.ReadImagesFromPath();
+            return this.ReadImagesFromPath();
         }
 
-        private void mWatcher_Changed(object sender, FileSystemEventArgs e)
+        private async void mWatcher_Changed(object sender, FileSystemEventArgs e)
         {
-            this.ReadImagesFromPath();
+            await this.ReadImagesFromPath();
         }
 
         private void Images_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
@@ -92,31 +96,36 @@ namespace NoMansTrade.App.ViewModels
             this.Current.Value = mImagesSource.LastOrDefault();
         }
 
-        private void ReadImagesFromPath()
+        private async Task ReadImagesFromPath()
         {
-            var unusedImages = mImagesSource.ToDictionary(i => i.FilePath);
-
-            foreach (var filePath in Directory.GetFiles(mSettings.ScanDirectory.Value, "*.png", SearchOption.TopDirectoryOnly))
+            lock (mImagesSource)
             {
-                if (unusedImages.Remove(filePath))
+                var unusedImages = mImagesSource.ToDictionary(i => i.FilePath);
+
+                foreach (var filePath in Directory.GetFiles(mSettings.ScanDirectory.Value, "*.png", SearchOption.TopDirectoryOnly))
                 {
-                    // Already loaded
-                    continue;
+                    if (unusedImages.Remove(filePath))
+                    {
+                        // Already loaded
+                        continue;
+                    }
+
+                    Image? image = null;
+                    mDispatcher.Invoke(() => image = new Image(filePath));
+
+                    mImagesSource.Add(image!);
                 }
 
-                var image = new Image(filePath);
-                mImagesSource.Add(image);
-            }
+                foreach (var unusedImage in unusedImages.Values)
+                {
+                    mImagesSource.Remove(unusedImage);
+                }
 
-            foreach (var unusedImage in unusedImages.Values)
-            {
-                mImagesSource.Remove(unusedImage);
-            }
-
-            var newOrder = mImagesSource.OrderBy(i => i.Date).ToArray();
-            for (var index = 0; index < newOrder.Length; index++)
-            {
-                mImagesSource[index] = newOrder[index];
+                var newOrder = mImagesSource.OrderBy(i => i.Date).ToArray();
+                for (var index = 0; index < newOrder.Length; index++)
+                {
+                    mImagesSource[index] = newOrder[index];
+                }
             }
         }
 
