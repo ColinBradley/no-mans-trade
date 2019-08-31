@@ -20,6 +20,7 @@ namespace NoMansTrade.App.ViewModels
         public Application()
         {
             this.Images = new DirectoryImages(this.Locations, this.Settings);
+            this.Recommendations = new Recommendations(this.Locations);
         }
 
         public DirectoryImages Images { get; }
@@ -27,6 +28,8 @@ namespace NoMansTrade.App.ViewModels
         public Locations Locations { get; } = new Locations();
 
         public Settings Settings { get; } = new Settings();
+
+        public Recommendations Recommendations { get; }
 
         public Task Initialize()
         {

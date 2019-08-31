@@ -14,8 +14,7 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <StackPanel Name="Controls"
-                    Orientation="Horizontal">
+        <StackPanel Orientation="Horizontal">
             <Button Content="Previous" Command="{Binding PreviousImage}"/>
             <Button Content="Next" Command="{Binding NextImage}"/>
             <Button Content="Analyze" Command="{Binding AnalyzeImage}"/>

@@ -15,6 +15,9 @@
             <TabItem Header="Data">
                 <vc:DataView DataContext="{Binding Locations}"/>
             </TabItem>
+            <TabItem Header="Recommendations">
+                <vc:RecommendationsView DataContext="{Binding Recommendations}"/>
+            </TabItem>
             <TabItem Header="Options">
                 <vc:SettingsView DataContext="{Binding Settings}"/>
             </TabItem>
