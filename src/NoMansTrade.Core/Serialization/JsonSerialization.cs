@@ -10,7 +10,7 @@ namespace NoMansTrade.Core.Serialization
 {
     public static class JsonSerialization
     {
-        private static readonly JsonSerializerSettings sJsonOptions = new JsonSerializerSettings()
+        public static JsonSerializerSettings Settings { get; } = new JsonSerializerSettings()
         {
             ContractResolver = new DefaultContractResolver()
             {
@@ -20,7 +20,7 @@ namespace NoMansTrade.Core.Serialization
 
         static JsonSerialization()
         {
-            sJsonOptions.Converters.Add(new ObservableCollectionJsonConverter());
+            Settings.Converters.Add(new ObservableCollectionJsonConverter());
         }
 
         public static async Task<Location[]> Parse(Stream data)
@@ -28,7 +28,7 @@ namespace NoMansTrade.Core.Serialization
             using var reader = new StreamReader(data, Encoding.UTF8, leaveOpen: true);
             var json = await reader.ReadToEndAsync();
 
-            return JsonConvert.DeserializeObject<Location[]>(json, sJsonOptions);
+            return JsonConvert.DeserializeObject<Location[]>(json, Settings);
         }
 
         public static void Store(IEnumerable<Location> data, Stream stream)

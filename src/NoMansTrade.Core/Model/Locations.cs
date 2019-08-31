@@ -53,6 +53,21 @@ namespace NoMansTrade.Core.Model
             }
         }
 
+        public void AddLocation(Location location)
+        {
+            if (!mLocationsByName.TryGetValue(location.Name, out var instance))
+            {
+                mLocationsByName.Add(location.Name, location);
+
+                this.Add(location);
+
+                return;
+            }
+
+            MergeItems(instance.Buying, location.Buying.ToArray());
+            MergeItems(instance.Selling, location.Selling.ToArray());
+        }
+
         private static void MergeItems(IList<Item> existingItems, Item[] newItems)
         {
             foreach (var item in newItems)

@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.ComponentModel;
+using System.Windows;
 
 namespace NoMansTrade.App
 {
@@ -18,6 +19,13 @@ namespace NoMansTrade.App
             mApplication.Initialize();
 
             this.DataContext = mApplication;
+        }
+
+        protected override void OnClosing(CancelEventArgs e)
+        {
+            base.OnClosing(e);
+
+            mApplication.Save().Wait();
         }
     }
 }

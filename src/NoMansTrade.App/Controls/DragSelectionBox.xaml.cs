@@ -1,16 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using SkiaSharp;
+using System;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.Windows.Controls.Primitives;
+using System.Windows.Media;
 
 namespace NoMansTrade.App.Controls
 {
@@ -27,7 +20,13 @@ namespace NoMansTrade.App.Controls
                 new PropertyMetadata(new BrushConverter().ConvertFromString("DodgerBlue"))
             );
 
-        public event Action<DragSelectionBox>? Changed;
+        public static readonly DependencyProperty RectangleProperty =
+            DependencyProperty.Register(
+                "Rectangle",
+                typeof(SKRectI),
+                typeof(DragSelectionBox),
+                new PropertyMetadata(new SKRectI(100, 100, 200, 200), (s,e) => ((DragSelectionBox)s).Rectangle_Changed())
+            );
 
         public DragSelectionBox()
         {
@@ -40,35 +39,24 @@ namespace NoMansTrade.App.Controls
             BottomLeftThumb.DragDelta += this.BottomLeftThumb_DragDelta;
         }
 
-        protected override void OnVisualParentChanged(DependencyObject oldParent)
-        {
-            ((FrameworkElement)this.Parent).SizeChanged += this.Parent_SizeChanged;
-        }
-
-        private void Parent_SizeChanged(object sender, SizeChangedEventArgs e)
-        {
-            if (e.PreviousSize.Width == 0)
-            {
-                // Initial sizing
-                return;
-            }
-
-            // Really, we want to adjust based on how the image changes, not how the parent changed... but it doesn't really matter
-            var horizontalDelta = e.NewSize.Width / e.PreviousSize.Width;
-            var verticalDelta = e.NewSize.Height - e.PreviousSize.Height;
-
-            // Assume height is always the largest dimension
-            Canvas.SetLeft(this, Canvas.GetLeft(this) * horizontalDelta);
-            Canvas.SetTop(this, Canvas.GetTop(this) + (verticalDelta / 2));
-
-            // Height typically doesn't change much
-            this.Width *= horizontalDelta;
-        }
-
         public Brush Color
         {
             get { return (Brush)this.GetValue(ColorProperty); }
             set { this.SetValue(ColorProperty, value); }
+        }
+
+        public SKRectI Rectangle
+        {
+            get { return (SKRectI)this.GetValue(RectangleProperty); }
+            set { this.SetValue(RectangleProperty, value); }
+        }
+
+        private void Rectangle_Changed()
+        {
+            Canvas.SetTop(this, this.Rectangle.Top);
+            Canvas.SetLeft(this, this.Rectangle.Left);
+            this.Width = this.Rectangle.Width;
+            this.Height = this.Rectangle.Height;
         }
 
         private void MoveThumb_DragDelta(object sender, DragDeltaEventArgs e)
@@ -76,7 +64,7 @@ namespace NoMansTrade.App.Controls
             Canvas.SetLeft(this, Canvas.GetLeft(this) + e.HorizontalChange);
             Canvas.SetTop(this, Canvas.GetTop(this) + e.VerticalChange);
 
-            this.Changed?.Invoke(this);
+            this.SetRectangle();
         }
 
         private void BottomLeftThumb_DragDelta(object sender, DragDeltaEventArgs e)
@@ -86,7 +74,7 @@ namespace NoMansTrade.App.Controls
 
             this.Width -= e.HorizontalChange;
 
-            this.Changed?.Invoke(this);
+            this.SetRectangle();
         }
 
         private void BottomRightThumb_DragDelta(object sender, DragDeltaEventArgs e)
@@ -94,7 +82,7 @@ namespace NoMansTrade.App.Controls
             this.Width += e.HorizontalChange;
             this.Height += e.VerticalChange;
 
-            this.Changed?.Invoke(this);
+            this.SetRectangle();
         }
 
         private void TopRightThumb_DragDelta(object sender, DragDeltaEventArgs e)
@@ -104,7 +92,7 @@ namespace NoMansTrade.App.Controls
 
             this.Height -= e.VerticalChange;
 
-            this.Changed?.Invoke(this);
+            this.SetRectangle();
         }
 
         private void TopLeftThumb_DragDelta(object sender, DragDeltaEventArgs e)
@@ -115,7 +103,16 @@ namespace NoMansTrade.App.Controls
             this.Width -= e.HorizontalChange;
             this.Height -= e.VerticalChange;
 
-            this.Changed?.Invoke(this);
+            this.SetRectangle();
+        }
+
+        private void SetRectangle()
+        {
+            this.Rectangle = new SKRectI(
+                Convert.ToInt32(Canvas.GetLeft(this)),
+                Convert.ToInt32(Canvas.GetTop(this)),
+                Convert.ToInt32(Canvas.GetLeft(this) + this.ActualWidth),
+                Convert.ToInt32(Canvas.GetTop(this) + this.ActualHeight));
         }
     }
 }

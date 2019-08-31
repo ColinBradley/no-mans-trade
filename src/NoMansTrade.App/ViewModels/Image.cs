@@ -12,6 +12,7 @@ namespace NoMansTrade.App.ViewModels
             this.Date = System.IO.File.GetLastWriteTimeUtc(filePath);
 
             this.IsAnalyzing.PropertyChanged += this.UpdateStateMessage;
+            this.IsAnalyzed.PropertyChanged += this.UpdateStateMessage;
         }
 
         public string FilePath { get; }

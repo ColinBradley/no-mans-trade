@@ -7,7 +7,6 @@
              xmlns:localControls="clr-namespace:NoMansTrade.App.Controls"
              xmlns:vm="clr-namespace:NoMansTrade.App.ViewModels"
              mc:Ignorable="d"
-             Name="Self"
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
         <Grid.RowDefinitions>
@@ -19,36 +18,39 @@
                     Orientation="Horizontal">
             <Button Content="Previous" Command="{Binding PreviousImage}"/>
             <Button Content="Next" Command="{Binding NextImage}"/>
-            <Button Content="Analyze" Command="{Binding AnalyzeImage}" CommandParameter="{Binding ImageLocations, ElementName=Self}"/>
+            <Button Content="Analyze" Command="{Binding AnalyzeImage}"/>
             <Button Content="Ignore" Command="{Binding IgnoreImage}"/>
+            
+            <TextBlock VerticalAlignment="Center"
+                       FontWeight="Bold"
+                       Padding="10">
+                Status: <Run Text="{Binding Current.Value.StateMessage.Value}"/>
+            </TextBlock>
         </StackPanel>
 
-        <Grid Grid.Row="1"
-              Margin="10">
-            
-            <Image Name="ImageDisplay" Source="{Binding Current.Value.FilePath}" />
-            
-            <Canvas>
-                <localControls:DragSelectionBox
-                    x:Name="ItemsRectangle"
-                    Canvas.Left="400"
-                    Canvas.Top="30"
-                    Width="200"
-                    Height="300"/>
-                <localControls:DragSelectionBox
-                    x:Name="LocationRectangle"
-                    Color="OrangeRed"
-                    Canvas.Left="50"
-                    Canvas.Top="200"
-                    Width="200"
-                    Height="100"/>
-            </Canvas>
+        <ScrollViewer Grid.Row="1"
+                      HorizontalScrollBarVisibility="Auto"
+                      VerticalScrollBarVisibility="Auto">
+            <Grid>
+                <Image Source="{Binding Current.Value.FilePath}"
+                       Stretch="None" />
 
-            <Label Content="{Binding Current.Value.StateMessage.Value}"
-                   HorizontalAlignment="Center"
-                   VerticalAlignment="Bottom"
-                   FontWeight="Bold"
-                   Padding="5"/>
-        </Grid>
+                <Canvas>
+                    <localControls:DragSelectionBox
+                        Rectangle="{Binding ItemsRectangle.Value, Mode=TwoWay}"
+                        Canvas.Left="400"
+                        Canvas.Top="30"
+                        Width="200"
+                        Height="300"/>
+                    <localControls:DragSelectionBox
+                        Rectangle="{Binding LocationRectangle.Value, Mode=TwoWay}"
+                        Color="OrangeRed"
+                        Canvas.Left="50"
+                        Canvas.Top="200"
+                        Width="200"
+                        Height="100"/>
+                </Canvas>
+            </Grid>
+        </ScrollViewer>
     </Grid>
 </UserControl>

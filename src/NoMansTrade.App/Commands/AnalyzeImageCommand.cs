@@ -30,8 +30,8 @@ namespace NoMansTrade.App.Commands
 
         public bool CanExecute(object parameter)
         {
-            return mImages.Current.Value != null 
-                && !mImages.Current.Value.IsAnalyzing.Value 
+            return mImages.Current.Value != null
+                && !mImages.Current.Value.IsAnalyzing.Value
                 && !mImages.Current.Value.IsAnalyzed.Value;
         }
 
@@ -44,13 +44,11 @@ namespace NoMansTrade.App.Commands
 
             Task.Run(async () =>
             {
-                var locations = ((SKRectI items, SKRectI location))parameter;
-
                 var fullImage = SKImage.FromEncodedData(imageViewModel.FilePath);
 
                 using var itemsImageStream = new MemoryStream();
 
-                fullImage.Subset(locations.items)
+                fullImage.Subset(mImages.ItemsRectangle.Value)
                     .Encode(SKEncodedImageFormat.Png, 100)
                     .SaveTo(itemsImageStream);
 
@@ -61,7 +59,7 @@ namespace NoMansTrade.App.Commands
 
                 using var locationImageStream = new MemoryStream();
 
-                fullImage.Subset(locations.location)
+                fullImage.Subset(mImages.LocationRectangle.Value)
                     .Encode(SKEncodedImageFormat.Png, 100)
                     .SaveTo(locationImageStream);
 
@@ -109,7 +107,7 @@ namespace NoMansTrade.App.Commands
         public void Dispose()
         {
             mImages.Current.PropertyChanged -= this.ImagesCurrent_PropertyChanged;
-            
+
             if (mCurrentImageModel != null)
             {
                 mCurrentImageModel.IsAnalyzed.PropertyChanged -= this.IsAnalyzed_PropertyChanged;

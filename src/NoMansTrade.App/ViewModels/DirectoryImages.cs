@@ -1,6 +1,7 @@
 ﻿using NoMansTrade.App.Commands;
 using NoMansTrade.App.Support;
 using NoMansTrade.Core.Model;
+using SkiaSharp;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.IO;
@@ -9,7 +10,7 @@ using System.Windows.Input;
 
 namespace NoMansTrade.App.ViewModels
 {
-    internal class DirectoryImages
+    internal class DirectoryImages : System.IDisposable
     {
         private readonly ObservableCollection<Image> mImagesSource = new ObservableCollection<Image>();
         private readonly Settings mSettings;
@@ -38,7 +39,25 @@ namespace NoMansTrade.App.ViewModels
         }
 
         public ObservableProperty<Image?> Current { get; private set; }
-        
+
+        public ObservableProperty<SKRectI> ItemsRectangle { get; } = new ObservableProperty<SKRectI>(new SKRectI(50, 50, 100, 100));
+
+        public ObservableProperty<SKRectI> LocationRectangle { get; } = new ObservableProperty<SKRectI>(new SKRectI(60, 60, 110, 110));
+
+        internal void SetAnalyzedImages(string[] analyzedNames)
+        {
+            foreach (var name in analyzedNames)
+            {
+                var image = this.Images.FirstOrDefault(i => i.FilePath.EndsWith(name));
+                if (image == null)
+                {
+                    continue;
+                }
+
+                image.IsAnalyzed.Value = true;
+            }
+        }
+
         public ReadOnlyObservableCollection<Image> Images { get; }
 
         public ICommand NextImage { get; }
@@ -98,6 +117,14 @@ namespace NoMansTrade.App.ViewModels
             for (var index = 0; index < newOrder.Length; index++)
             {
                 mImagesSource[index] = newOrder[index];
+            }
+        }
+
+        public void Dispose()
+        {
+            if (mWatcher != null)
+            {
+                mWatcher.Dispose();
             }
         }
     }
