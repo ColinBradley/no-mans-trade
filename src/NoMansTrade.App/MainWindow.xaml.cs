@@ -25,7 +25,7 @@ namespace NoMansTrade.App
         {
             base.OnClosing(e);
 
-            mApplication.Save();
+            mApplication.Save().Wait();
         }
     }
 }

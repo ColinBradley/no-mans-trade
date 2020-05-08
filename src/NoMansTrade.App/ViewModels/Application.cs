@@ -25,7 +25,7 @@ namespace NoMansTrade.App.ViewModels
 
         public DirectoryImages Images { get; }
 
-        public Locations Locations { get; } = new Locations();
+        public LocationCollection Locations { get; } = new LocationCollection();
 
         public Settings Settings { get; } = new Settings();
 
@@ -47,7 +47,7 @@ namespace NoMansTrade.App.ViewModels
 
             try
             {
-                var config = JsonConvert.DeserializeObject<ApplicationConfiguration>(await File.ReadAllTextAsync("./config.json"), JsonSerialization.Settings);
+                var config = JsonConvert.DeserializeObject<ApplicationConfiguration>(await File.ReadAllTextAsync("./config.json").ConfigureAwait(true), JsonSerialization.Settings);
 
                 this.Settings.ApiKey.Value = config.ApiKey;
                 this.Settings.ApiEndPoint.Value = config.ApiEndPoint;
@@ -85,7 +85,7 @@ namespace NoMansTrade.App.ViewModels
 
             try
             {
-                await File.WriteAllTextAsync("./config.json", JsonConvert.SerializeObject(config, JsonSerialization.Settings));
+                await File.WriteAllTextAsync("./config.json", JsonConvert.SerializeObject(config, JsonSerialization.Settings)).ConfigureAwait(false);
             } 
             catch (Exception ex)
             {

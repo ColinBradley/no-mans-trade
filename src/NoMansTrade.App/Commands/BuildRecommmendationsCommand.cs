@@ -14,12 +14,14 @@ namespace NoMansTrade.App.Commands
 {
     internal class BuildRecommmendationsCommand : ICommand
     {
-        private readonly Locations mLocations;
+        private readonly LocationCollection mLocations;
         private readonly Recommendations mRecommendationsViewModel;
 
+#pragma warning disable 67
         public event EventHandler? CanExecuteChanged;
+#pragma warning restore 67
 
-        public BuildRecommmendationsCommand(Locations locations, Recommendations recommendations)
+        public BuildRecommmendationsCommand(LocationCollection locations, Recommendations recommendations)
         {
             mLocations = locations;
             mRecommendationsViewModel = recommendations;
@@ -39,11 +41,6 @@ namespace NoMansTrade.App.Commands
             {
                 foreach (var buyable in location.Buying)
                 {
-                    if (buyable.PriceDifferencePercentage > 0)
-                    {
-                        continue;
-                    }
-
                     if (!buying.TryGetValue(buyable.Name, out var items))
                     {
                         items = new List<(Item item, Location location)>();
@@ -55,11 +52,6 @@ namespace NoMansTrade.App.Commands
 
                 foreach (var sellable in location.Selling)
                 {
-                    if (sellable.PriceDifferencePercentage < 0)
-                    {
-                        continue;
-                    }
-
                     if (!selling.TryGetValue(sellable.Name, out var items))
                     {
                         items = new List<(Item item, Location location)>();
@@ -73,15 +65,21 @@ namespace NoMansTrade.App.Commands
             var recommendations = new List<Recommendation>();
             foreach (var buyable in buying.Values)
             {
-                var bestBuyable = buyable.OrderBy(b => b.item.PriceDifferencePercentage).First();
+                var bestBuyable = buyable.OrderBy(b => b.item.Price).First();
                 if (!selling.TryGetValue(bestBuyable.item.Name, out var sellables))
                 {
                     continue;
                 }
 
-                var bestSellable = sellables.OrderBy(s => s.item.PriceDifferencePercentage).Last();
+                var bestSellable = sellables.OrderBy(s => s.item.Price).Last();
 
-                recommendations.Add(new Recommendation(bestBuyable, bestSellable));
+                var recommendation = new Recommendation(bestBuyable, bestSellable);
+                if (recommendation.ProfitAmount <= 0)
+                {
+                    continue;
+                }
+
+                recommendations.Add(recommendation);
             }
 
             mRecommendationsViewModel.SetRecommendations(recommendations.ToArray());

@@ -16,7 +16,7 @@ namespace NoMansTrade.App.Storage
 
         public string ScanDirectory { get; set; } = "";
 
-        public Locations Locations { get; set; } = new Locations();
+        public LocationCollection Locations { get; set; } = new LocationCollection();
 
         public string[] AnalyzedNames { get; set; } = Array.Empty<string>();
 

@@ -1,16 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.Contracts;
 using System.Linq;
 
 namespace NoMansTrade.Core.Model
 {
-    public class Locations : ObservableCollection<Location>
+    public class LocationCollection : ObservableCollection<Location>
     {
         private readonly Dictionary<string, Location> mLocationsByName = new Dictionary<string, Location>(StringComparer.OrdinalIgnoreCase);
 
         public void AddLocation(string name, Item[] items, bool isBuying)
         {
+            _ = items ?? throw new ArgumentNullException(nameof(items));
+
             if (!mLocationsByName.TryGetValue(name, out var instance))
             {
                 instance = new Location()
@@ -81,7 +85,6 @@ namespace NoMansTrade.Core.Model
 
                 matching.LastUpdate = item.LastUpdate;
                 matching.Price = item.Price;
-                matching.PriceDifferencePercentage = item.PriceDifferencePercentage;
                 matching.Quantity = item.Quantity;
             }
         }

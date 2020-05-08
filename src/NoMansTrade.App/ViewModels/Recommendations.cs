@@ -12,7 +12,7 @@ namespace NoMansTrade.App.ViewModels
     {
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        public Recommendations(Locations locations)
+        public Recommendations(LocationCollection locations)
         {
             this.BuildCommand = new BuildRecommmendationsCommand(locations, this);
         }

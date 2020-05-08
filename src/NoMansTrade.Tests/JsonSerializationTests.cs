@@ -26,7 +26,6 @@ namespace NoMansTrade.Tests
             {
                 Name = "Item 1",
                 Price = 100,
-                PriceDifferencePercentage = 2.1,
                 Quantity = 42,
                 LastUpdate = updateTime
             });

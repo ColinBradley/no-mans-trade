@@ -20,7 +20,7 @@ namespace NoMansTrade.App.ViewModels
 
         private FileSystemWatcher? mWatcher;
 
-        public DirectoryImages(Locations locations, Settings settings)
+        public DirectoryImages(LocationCollection locations, Settings settings)
         {
             mDispatcher = Dispatcher.CurrentDispatcher;
             mSettings = settings;
@@ -52,7 +52,7 @@ namespace NoMansTrade.App.ViewModels
         {
             foreach (var name in analyzedNames)
             {
-                var image = this.Images.FirstOrDefault(i => i.FilePath.EndsWith(name));
+                var image = this.Images.FirstOrDefault(i => i.FilePath.EndsWith(name, System.StringComparison.OrdinalIgnoreCase));
                 if (image == null)
                 {
                     continue;
@@ -70,7 +70,7 @@ namespace NoMansTrade.App.ViewModels
 
         public ICommand AnalyzeImage { get; }
 
-        public Task Initialize()
+        public void Initialize()
         {
             if (mWatcher != null)
             {
@@ -83,12 +83,13 @@ namespace NoMansTrade.App.ViewModels
             mWatcher.Changed += this.mWatcher_Changed;
             mWatcher.EnableRaisingEvents = true;
 
-            return this.ReadImagesFromPath();
+            this.ReadImagesFromPath();
         }
 
-        private async void mWatcher_Changed(object sender, FileSystemEventArgs e)
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Exception")]
+        private void mWatcher_Changed(object sender, FileSystemEventArgs e)
         {
-            await this.ReadImagesFromPath();
+            this.ReadImagesFromPath();
         }
 
         private void Images_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
@@ -96,7 +97,7 @@ namespace NoMansTrade.App.ViewModels
             this.Current.Value = mImagesSource.LastOrDefault();
         }
 
-        private async Task ReadImagesFromPath()
+        private void ReadImagesFromPath()
         {
             lock (mImagesSource)
             {

@@ -3,13 +3,16 @@ using Microsoft.Azure.CognitiveServices.Vision.ComputerVision.Models;
 using NoMansTrade.Core.Model;
 using System;
 using System.Collections.Generic;
+using System.Drawing.Text;
 using System.IO;
 using System.Linq;
+using System.Net.NetworkInformation;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace NoMansTrade.Core
 {
-    public class AzureOcr : IDisposable
+    public sealed class AzureOcr : IDisposable
     {
         private readonly ComputerVisionClient mClient;
 
@@ -33,94 +36,180 @@ namespace NoMansTrade.Core
             return await GetTextAsync(mClient, requestResult.OperationLocation);
         }
 
+        private static Regex sMatchQuantity = new Regex(@"\b^\d+\s*[|\\\/]\s*(\d+)\s*\b", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
         public static (bool isBuying, Item[] items) ParseItems(string text)
         {
             var currentItem = new Item() { LastUpdate = DateTime.UtcNow };
             var items = new List<Item>() { currentItem };
 
             var isBuying = false;
+            var index = 0;
 
-            foreach (var line in text.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+            while (index < text.Length)
             {
-                switch (GuessType(line))
+                var current = text.Substring(index);
+
+                if (current.StartsWith("Sell ", StringComparison.OrdinalIgnoreCase) || current.StartsWith("Buying ", StringComparison.OrdinalIgnoreCase))
                 {
-                    case LineType.Name:
+                    index += current.IndexOf("For", StringComparison.OrdinalIgnoreCase) + 3;
 
-                        if (currentItem.Name.Length != 0)
-                        {
-                            currentItem = new Item() { LastUpdate = DateTime.UtcNow };
-                            items.Add(currentItem);
-                        }
+                    var (price, delta) = TakeNumbers(text.Substring(index));
+                    if (delta <= 0)
+                    {
+                        index += 8;
+                        continue;
+                    }
 
-                        currentItem.Name = line;
+                    isBuying = false;
+                    currentItem.Price = price;
+                    index += delta;
+                    continue;
+                }
 
-                        break;
-                    case LineType.BuyFor:
+                if (current.StartsWith("Buy ", StringComparison.OrdinalIgnoreCase))
+                {
+                    index += current.IndexOf("For", StringComparison.OrdinalIgnoreCase) + 3;
 
-                        isBuying = true;
-                        currentItem.Price = GetEndNumbers(line);
+                    var (price, delta) = TakeNumbers(text.Substring(index));
+                    if (delta <= 0)
+                    {
+                        index += 8;
+                        continue;
+                    }
 
-                        break;
-                    case LineType.SellFor:
+                    isBuying = true;
+                    currentItem.Price = price;
+                    index += delta;
+                    continue;
+                }
 
-                        isBuying = false;
-                        currentItem.Price = GetEndNumbers(line);
+                var quantityMatch = sMatchQuantity.Match(current);
+                if (quantityMatch.Success)
+                {
+                    index += quantityMatch.Length;
 
-                        break;
-                    case LineType.PriceDifference:
+                    if (!int.TryParse(quantityMatch.Groups[1].Value, out var quantity))
+                    {
+                        continue;
+                    }
 
-                        double.TryParse(line.Trim().Trim('%'), out var difference);
-                        currentItem.PriceDifferencePercentage = difference;
+                    currentItem.Quantity = quantity;
 
-                        break;
+                    continue;
+                }
 
-                    case LineType.StockCount:
+                // Probably dealing with name or some noise
+                var endOfLine = current.IndexOf('\n', StringComparison.OrdinalIgnoreCase);
+                if (endOfLine < 0)
+                {
+                    endOfLine = current.Length - 1;
+                }
 
-                        currentItem.Quantity = GetEndNumbers(line);
+                var line = current.Substring(0, endOfLine + 1);
+                index += line.Length;
 
-                        break;
+                if (IsNoise(line))
+                {
+                    continue;
+                }
+
+                if (currentItem.Name.Length > 0)
+                {
+                    currentItem = new Item() { LastUpdate = DateTime.UtcNow };
+                    items.Add(currentItem);
+                }
+
+                // -1 to remove newline at end
+                currentItem.Name = line.Substring(0, line.Length -1);
+            }
+
+            if (!isBuying)
+            {
+                // Sale price is based on quantity, fix it!
+                foreach (var item in items.ToArray())
+                {
+                    if (item.Price == 0)
+                    {
+                        // glitch :/
+                        items.Remove(item);
+                    }
+                    if (item.Quantity == 0)
+                    {
+                        // Was selling 1... hopefully
+                        continue;
+                    }
+
+                    item.Price = item.Price / item.Quantity;
                 }
             }
 
             return (isBuying, items.Where(i => i.Name.Length > 0).ToArray());
         }
 
-        private static int GetEndNumbers(string line)
+        private static readonly ParallelQuery<string> sNoiseStarts = new string[] {
+            "Demand:",
+            "Produced Locally",
+            "Economy Demands",
+            "Price:",
+        }.AsParallel();
+
+        private static bool IsNoise(string line)
         {
-            var numberStr =
-               new string(
-                   line.Reverse()
-                       .TakeWhile(c => c == ' ' || char.IsNumber(c) || c == ',' || c == '.')
-                       .Where(char.IsNumber)
-                       .Reverse()
-                       .ToArray());
-
-            if (int.TryParse(numberStr, out var number))
-            {
-                return number;
-            }
-
-            return -1;
+            return sNoiseStarts.Any(n => line.StartsWith(n, StringComparison.OrdinalIgnoreCase));
         }
 
-        private static LineType GuessType(string line)
+        private static (int value, int end) TakeNumbers(string text)
         {
-            if (line.Contains("Sell for", StringComparison.OrdinalIgnoreCase))
+            var seenNumbers = false;
+            var numbers = "";
+
+            var index = 0;
+            for (; index < text.Length; index++)
+            {
+                var character = text[index];
+                if (char.IsNumber(character))
+                {
+                    seenNumbers = true;
+                    numbers += character;
+                    continue;
+                }
+
+                if (character == ',' || character == '.' || character == ' ')
+                {
+                    continue;
+                }
+
+                if (character == '\n')
+                {
+                    if (seenNumbers)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            if (numbers.Length > 0 && int.TryParse(numbers, out var value))
+            {
+                return (value, index + 1);
+            }
+
+            return (-1, -1);
+        }
+
+        private static LineType GuessType(string text)
+        {
+            if (text.StartsWith("Sell for", StringComparison.OrdinalIgnoreCase))
             {
                 return LineType.SellFor;
             }
 
-            if (line.Contains("Buy for", StringComparison.OrdinalIgnoreCase))
+            if (text.StartsWith("Buy for", StringComparison.OrdinalIgnoreCase))
             {
                 return LineType.BuyFor;
             }
 
-            if (line.Contains("%", StringComparison.OrdinalIgnoreCase))
-            {
-                return LineType.PriceDifference;
-            }
-
-            if (line.Contains("/", StringComparison.OrdinalIgnoreCase))
+            if (text.Contains("/", StringComparison.OrdinalIgnoreCase))
             {
                 return LineType.StockCount;
             }
@@ -153,7 +242,6 @@ namespace NoMansTrade.Core
         {
             SellFor,
             Name,
-            PriceDifference,
             BuyFor,
             StockCount
         }

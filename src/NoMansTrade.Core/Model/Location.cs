@@ -7,9 +7,9 @@ namespace NoMansTrade.Core.Model
     {
         public string Name { get; set; } = "";
 
-        public ObservableCollection<Item> Buying { get; set; } = new ObservableCollection<Item>();
+        public ObservableCollection<Item> Buying { get; } = new ObservableCollection<Item>();
 
-        public ObservableCollection<Item> Selling { get; set; } = new ObservableCollection<Item>();
+        public ObservableCollection<Item> Selling { get; } = new ObservableCollection<Item>();
 
         public DateTime LastUpdate { get; set; }
     }

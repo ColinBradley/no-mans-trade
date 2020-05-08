@@ -12,35 +12,15 @@ namespace NoMansTrade.Tests
     [TestClass]
     public class OcrTextParsingTests
     {
-        private const string ITEMS_EXAMPLE_1 = "Non - Stick Piston\nSell for # 0\n27.5%\n0 /0\nSix-Pronged Mesh Decoupler\n-21.2%\nSell for # 0\n0/0\nHolographic Crankshaft\nSell for # 0\n-16.1%\n0 /0\nDirt\nSell for\n+41.8%\n0/0\nUnrefined Pyrite Grease\nSell for\n+38.5%\n0 /0\nBromide Salt\nSell for # 0\n+29.9%\n0/0";
-        private const string ITEMS_EXAMPLE_2 = "Polychromatic Zirconium\nSell for @ 0\n+21.6%\n0/0\nRe-latticed Arc Crystal\nSell for\n+16.0%\n0/0\nOxygen Capsule\nSell for\n-6.7%\n0/0\nRusted Metal\nSell for # 0\n-11.5%\n0/0\nResidual Goop\nSell for\n-7.5%\n0/0\nUranium\nSell for\n-7.8%\n0/0";
-        private const string ITEMS_EXAMPLE_3 = "Non-Stick Piston\n-20.3%\nBuy for # 5,022\n1 / 73\nEnormous Metal Cog\n-25.9%\nBuy for # 777\n1 / 56\nSix-Pronged Mesh Decoupler\n-13.3%\nBuy for @ 13,655\n1 / 72\nHolographic Crankshaft\nBuy for # 29,088\n-7.7%\n1 / 43\nOxygen Capsule\n+11.9%\nBuy for # 430\n1 / 53\nUnstable Plasma\n+5.8%\nBuy for # 6,694\n1 / 71";
+        private const string ITEMS_EXAMPLE_1 = "De-Scented Pheromone Bottle\nPrice: -13.3%\nBuy for # 910\nProduced Locally\n1 / 24\nNeutron Microscope\nPrice: -9.9%\nBuy for @ 5,676\nProduced Locally\n1 / 29\nMicroprocessor\nDemand: +0.0%\nBuy for @ 19,000\n1 / 39\nWiring Loom\nDemand: +3.9%\nBuy for # 57,121\n1 / 11\nOxygen Capsule\nDemand: +4.3%\nBuy for # 438\n1 / 35\nUnstable Plasma\nDemand: +0.3%\nBuy for\n# 6,920\n1 / 10";
 
         [TestMethod]
         public void Basic_1()
         {
-            var result = AzureOcr.ParseItems(ITEMS_EXAMPLE_1);
+            var (isBuying, items) = AzureOcr.ParseItems(ITEMS_EXAMPLE_1);
 
-            Assert.AreEqual(false, result.isBuying);
-            Assert.AreEqual(6, result.items.Length);
-        }
-
-        [TestMethod]
-        public void Basic_2()
-        {
-            var result = AzureOcr.ParseItems(ITEMS_EXAMPLE_2);
-
-            Assert.AreEqual(false, result.isBuying);
-            Assert.AreEqual(6, result.items.Length);
-        }
-
-        [TestMethod]
-        public void Basic_3()
-        {
-            var result = AzureOcr.ParseItems(ITEMS_EXAMPLE_3);
-
-            Assert.AreEqual(true, result.isBuying);
-            Assert.AreEqual(6, result.items.Length);
+            Assert.AreEqual(true, isBuying);
+            Assert.AreEqual(6, items.Length);
         }
     }
 }

@@ -20,7 +20,7 @@ namespace NoMansTrade.App.ViewComponents
     {
         public RecommendationsView()
         {
-            InitializeComponent();
+            this.InitializeComponent();
         }
     }
 }

@@ -13,6 +13,9 @@ namespace NoMansTrade.App.ViewModels
             this.BuyLocation = bestBuyable.location;
             this.SellItem = bestSellable.item;
             this.SellLocation = bestSellable.location;
+
+            this.ProfitAmount = (this.SellItem.Price * this.BuyItem.Quantity) - (this.BuyItem.Price * this.BuyItem.Quantity);
+            this.Profit = $"{this.ProfitAmount.ToString("N", System.Globalization.CultureInfo.CurrentCulture)} Units";
         }
 
         public Item BuyItem { get; }
@@ -22,5 +25,9 @@ namespace NoMansTrade.App.ViewModels
         public Item SellItem { get; }
 
         public Location SellLocation { get; }
+
+        public int ProfitAmount { get; }
+
+        public string Profit { get; }
     }
 }

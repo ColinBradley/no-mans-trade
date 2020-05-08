@@ -13,13 +13,13 @@ namespace NoMansTrade.App.Commands
     internal class AnalyzeImageCommand : ICommand, IDisposable
     {
         private readonly DirectoryImages mImages;
-        private readonly Locations mLocations;
+        private readonly LocationCollection mLocations;
         private readonly Settings mSettings;
         private Image? mCurrentImageModel;
 
         public event EventHandler? CanExecuteChanged;
 
-        public AnalyzeImageCommand(DirectoryImages images, Locations locations, Settings settings)
+        public AnalyzeImageCommand(DirectoryImages images, LocationCollection locations, Settings settings)
         {
             mImages = images;
             mLocations = locations;
@@ -65,16 +65,16 @@ namespace NoMansTrade.App.Commands
 
                 locationImageStream.Position = 0;
 
-                var locationText = await ocr.ExtractTextAsync(locationImageStream);
+                var locationText = await ocr.ExtractTextAsync(locationImageStream).ConfigureAwait(false);
 
-                var itemsResult = AzureOcr.ParseItems(await itemsText);
+                var (isBuying, items) = AzureOcr.ParseItems(await itemsText.ConfigureAwait(false));
 
                 await dispatcher.BeginInvoke(() =>
                 {
                     imageViewModel.IsAnalyzing.Value = false;
                     imageViewModel.IsAnalyzed.Value = true;
 
-                    mLocations.AddLocation(locationText, itemsResult.items, itemsResult.isBuying);
+                    mLocations.AddLocation(locationText, items, isBuying);
                 });
             });
         }

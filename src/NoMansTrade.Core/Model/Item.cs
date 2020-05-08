@@ -10,8 +10,6 @@ namespace NoMansTrade.Core.Model
 
         public int Quantity { get; set; }
 
-        public double PriceDifferencePercentage { get; set; }
-
         public DateTime LastUpdate { get; set; }
     }
 }
