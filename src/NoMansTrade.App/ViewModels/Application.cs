@@ -52,10 +52,10 @@ namespace NoMansTrade.App.ViewModels
                     this.Locations.AddLocation(location);
                 }
 
-                this.Images.Initialize();
-                this.Images.SetAnalyzedImages(config.AnalyzedNames);
                 this.Images.ItemsRectangle.Value = config.ItemsRectangle;
                 this.Images.LocationRectangle.Value = config.LocationRectangle;
+                this.Images.Initiliaze();
+                this.Images.SetAnalyzedImages(config.AnalyzedNames);
             }
             catch (Exception ex)
             {

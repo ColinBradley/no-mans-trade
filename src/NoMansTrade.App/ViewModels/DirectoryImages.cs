@@ -2,10 +2,12 @@
 using NoMansTrade.App.Support;
 using NoMansTrade.Core.Model;
 using SkiaSharp;
+using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Threading;
@@ -18,7 +20,11 @@ namespace NoMansTrade.App.ViewModels
         private readonly Dispatcher mDispatcher;
         private readonly Settings mSettings;
 
+        private readonly Action mReadImagesFromPathDebounced;
+
         private FileSystemWatcher? mWatcher;
+
+        private bool mIsInitializing = false;
 
         public DirectoryImages(LocationCollection locations, Settings settings)
         {
@@ -28,18 +34,27 @@ namespace NoMansTrade.App.ViewModels
             this.Images = new ReadOnlyObservableCollection<Image>(mImagesSource);
             this.Current = new ObservableProperty<Image?>(mImagesSource.FirstOrDefault());
 
-            ((INotifyCollectionChanged)this.Images).CollectionChanged += this.Images_CollectionChanged;
 
             this.NextImage = new NextImageCommand(this);
             this.PreviousImage = new PreviousImageCommand(this);
             this.AnalyzeImage = new AnalyzeImageCommand(this, locations, settings);
 
+            mReadImagesFromPathDebounced = CreateDebounce(this.ReadImagesFromPath);
+        }
+
+        public void Initiliaze()
+        {
+            this.Load();
+
+            this.Current.Value = mImagesSource.LastOrDefault();
+
+            ((INotifyCollectionChanged)this.Images).CollectionChanged += this.Images_CollectionChanged;
             mSettings.ScanDirectory.PropertyChanged += this.ScanDirectory_PropertyChanged;
         }
 
         private void ScanDirectory_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            this.Initialize();
+            this.Load();
         }
 
         public ObservableProperty<Image?> Current { get; private set; }
@@ -70,31 +85,48 @@ namespace NoMansTrade.App.ViewModels
 
         public ICommand AnalyzeImage { get; }
 
-        public void Initialize()
+
+        private void Load()
         {
-            if (mWatcher != null)
+            try
             {
-                mWatcher.Dispose();
+                mIsInitializing = true;
+
+                if (mWatcher != null)
+                {
+                    mWatcher.Dispose();
+                }
+
+                mWatcher = new FileSystemWatcher(mSettings.ScanDirectory.Value, "*.png");
+                mWatcher.Created += this.mWatcher_Changed;
+                mWatcher.Deleted += this.mWatcher_Changed;
+                mWatcher.Changed += this.mWatcher_Changed;
+                mWatcher.EnableRaisingEvents = true;
+
+                this.ReadImagesFromPath();
             }
-
-            mWatcher = new FileSystemWatcher(mSettings.ScanDirectory.Value, "*.png");
-            mWatcher.Created += this.mWatcher_Changed;
-            mWatcher.Deleted += this.mWatcher_Changed;
-            mWatcher.Changed += this.mWatcher_Changed;
-            mWatcher.EnableRaisingEvents = true;
-
-            this.ReadImagesFromPath();
+            finally
+            {
+                mIsInitializing = false;
+            }
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Exception")]
         private void mWatcher_Changed(object sender, FileSystemEventArgs e)
         {
-            this.ReadImagesFromPath();
+            // Use a debouncer because at this point a file might not be fully written to
+            // Or someone might be pasting in loads of files? Doesn't really matter - debouncing is lovely
+            mReadImagesFromPathDebounced();
         }
 
         private void Images_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
             this.Current.Value = mImagesSource.LastOrDefault();
+
+            if (!mIsInitializing && mSettings.AutoScanNewImages.Value)
+            {
+                this.AnalyzeImage.Execute(null);
+            }
         }
 
         private void ReadImagesFromPath()
@@ -103,19 +135,21 @@ namespace NoMansTrade.App.ViewModels
             {
                 var unusedImages = mImagesSource.ToDictionary(i => i.FilePath);
 
-                foreach (var filePath in Directory.GetFiles(mSettings.ScanDirectory.Value, "*.png", SearchOption.TopDirectoryOnly))
+                // Image has to be created on main thread because it has ObservableProperties.
+                // Could just pass them the right dispatcher... but that's faff
+                mDispatcher.Invoke(() =>
                 {
-                    if (unusedImages.Remove(filePath))
+                    foreach (var filePath in Directory.GetFiles(mSettings.ScanDirectory.Value, "*.png", SearchOption.TopDirectoryOnly))
                     {
-                        // Already loaded
-                        continue;
+                        if (unusedImages.Remove(filePath))
+                        {
+                            // Already loaded
+                            continue;
+                        }
+
+                        mImagesSource.Add(new Image(filePath));
                     }
-
-                    Image? image = null;
-                    mDispatcher.Invoke(() => image = new Image(filePath));
-
-                    mImagesSource.Add(image!);
-                }
+                });
 
                 foreach (var unusedImage in unusedImages.Values)
                 {
@@ -136,6 +170,26 @@ namespace NoMansTrade.App.ViewModels
             {
                 mWatcher.Dispose();
             }
+        }
+
+        private static Action CreateDebounce(Action func, int milliseconds = 500)
+        {
+            CancellationTokenSource? cancelTokenSource = null;
+
+            return () =>
+            {
+                cancelTokenSource?.Cancel();
+                cancelTokenSource = new CancellationTokenSource();
+
+                Task.Delay(milliseconds, cancelTokenSource.Token)
+                    .ContinueWith(t =>
+                    {
+                        if (t.IsCompletedSuccessfully)
+                        {
+                            func();
+                        }
+                    }, TaskScheduler.Default);
+            };
         }
     }
 }
