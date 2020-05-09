@@ -12,16 +12,22 @@
         <ItemsControl ItemsSource="{Binding}">
             <ItemsControl.Resources>
                 <DataTemplate DataType="{x:Type model:Location}">
-                    <StackPanel>
-                        <TextBlock>
-                            <Run Text="{Binding Name}" FontWeight="Bold" FontSize="20"/>
-                            Last updated: (<Run Text="{Binding LastUpdate}"/>)
-                        </TextBlock>
-                        <Label Content="Buying" Margin="10 0 0 0"/>
-                        <ItemsControl ItemsSource="{Binding Buying}" Margin="20 0 0 0"/>
-                        <Label Content="Selling" Margin="10 0 0 0"/>
-                        <ItemsControl ItemsSource="{Binding Selling}" Margin="20 0 0 0"/>
-                    </StackPanel>
+                    <Expander>
+                        <Expander.Header>
+                            <TextBlock>
+                                    <Run Text="{Binding Name}" FontWeight="Bold" FontSize="20"/>
+                                    Last updated: (<Run Text="{Binding LastUpdate}"/>)
+                            </TextBlock>
+                        </Expander.Header>
+                        <Expander.Content>
+                            <StackPanel>
+                                <Label Content="Sells" Margin="10 0 0 0"/>
+                                <ItemsControl ItemsSource="{Binding Buying}" Margin="20 0 0 0"/>
+                                <Label Content="Buys" Margin="10 0 0 0"/>
+                                <ItemsControl ItemsSource="{Binding Selling}" Margin="20 0 0 0"/>
+                            </StackPanel>
+                        </Expander.Content>
+                    </Expander>
                 </DataTemplate>
                 <DataTemplate DataType="{x:Type model:Item}">
                     <StackPanel>
