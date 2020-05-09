@@ -46,6 +46,25 @@ namespace NoMansTrade.App.Commands
             {
                 var fullImage = SKImage.FromEncodedData(imageViewModel.FilePath);
 
+                var attempts = 1;
+                while (fullImage == null && attempts < 10)
+                {
+                    // Errored.. Image probably not fully written yet
+                    await Task.Delay(attempts * 100).ConfigureAwait(false);
+
+                    fullImage = SKImage.FromEncodedData(imageViewModel.FilePath);
+
+                    attempts++;
+                }
+
+                if (fullImage == null)
+                {
+                    imageViewModel.IsAnalyzing.Value = false;
+                    
+                    // TODO: Report
+                    return;
+                }
+
                 using var itemsImageStream = new MemoryStream();
 
                 fullImage.Subset(mImages.ItemsRectangle.Value)
@@ -65,17 +84,25 @@ namespace NoMansTrade.App.Commands
 
                 locationImageStream.Position = 0;
 
-                var locationText = await ocr.ExtractTextAsync(locationImageStream).ConfigureAwait(false);
+                try
+                {
+                    var locationText = await ocr.ExtractTextAsync(locationImageStream).ConfigureAwait(false);
 
-                var (isBuying, items) = AzureOcr.ParseItems(await itemsText.ConfigureAwait(false));
+                    var (isBuying, items) = AzureOcr.ParseItems(await itemsText.ConfigureAwait(false));
 
-                await dispatcher.BeginInvoke(() =>
+                    await dispatcher.BeginInvoke(() =>
+                    {
+                        imageViewModel.IsAnalyzing.Value = false;
+                        imageViewModel.IsAnalyzed.Value = true;
+
+                        mLocations.AddLocation(locationText, items, isBuying);
+                    });
+                }
+                catch (TaskCanceledException)
                 {
                     imageViewModel.IsAnalyzing.Value = false;
-                    imageViewModel.IsAnalyzed.Value = true;
-
-                    mLocations.AddLocation(locationText, items, isBuying);
-                });
+                    imageViewModel.IsAnalyzed.Value = false;
+                }
             });
         }
 
