@@ -16,7 +16,7 @@ namespace NoMansTrade.App
             
             this.InitializeComponent();
 
-            mApplication.Initialize();
+            mApplication.Load();
 
             this.DataContext = mApplication;
         }

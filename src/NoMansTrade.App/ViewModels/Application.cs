@@ -31,13 +31,6 @@ namespace NoMansTrade.App.ViewModels
 
         public Recommendations Recommendations { get; }
 
-        public Task Initialize()
-        {
-            this.Images.Initialize();
-            
-            return this.Load();
-        }
-
         public async Task Load()
         {
             if (!File.Exists("./config.json"))
@@ -59,6 +52,7 @@ namespace NoMansTrade.App.ViewModels
                     this.Locations.AddLocation(location);
                 }
 
+                this.Images.Initialize();
                 this.Images.SetAnalyzedImages(config.AnalyzedNames);
                 this.Images.ItemsRectangle.Value = config.ItemsRectangle;
                 this.Images.LocationRectangle.Value = config.LocationRectangle;
