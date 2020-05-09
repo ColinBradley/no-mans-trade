@@ -29,6 +29,7 @@
                     <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
                     <ColumnDefinition Width="Auto" SharedSizeGroup="BuyLocation" />
                     <ColumnDefinition Width="Auto" SharedSizeGroup="SellLocation" />
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="Cost" />
                     <ColumnDefinition Width="Auto" SharedSizeGroup="Profit" />
                 </Grid.ColumnDefinitions>
 
@@ -39,8 +40,11 @@
                 <TextBlock Text="Sell To"
                            Grid.Column="2"
                            FontWeight="Bold"/>
-                <TextBlock Text="Profit"
+                <TextBlock Text="Initial Cost"
                            Grid.Column="3"
+                           FontWeight="Bold"/>
+                <TextBlock Text="Profit"
+                           Grid.Column="4"
                            FontWeight="Bold"/>
             </Grid>
             
@@ -55,6 +59,7 @@
                                     <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
                                     <ColumnDefinition Width="Auto" SharedSizeGroup="BuyLocation" />
                                     <ColumnDefinition Width="Auto" SharedSizeGroup="SellLocation" />
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="Cost" />
                                     <ColumnDefinition Width="Auto" SharedSizeGroup="Profit" />
                                 </Grid.ColumnDefinitions>
 
@@ -66,9 +71,16 @@
                                 <TextBlock Text="{Binding SellLocation.Name}"
                                            Grid.Column="2"
                                            Margin="10"/>
-                                <TextBlock Text="{Binding Profit}"
+                                <TextBlock Text="{Binding Cost}"
+                                           TextAlignment="Right"
+                                           FontFamily="Consolas"
                                            Grid.Column="3"
-                                           Margin="10"/>
+                                           Margin="10" />
+                                <TextBlock Text="{Binding Profit}"
+                                           TextAlignment="Right"
+                                           FontFamily="Consolas"
+                                           Grid.Column="4"
+                                           Margin="10" />
                             </Grid>
                         </DataTemplate>
                     </ItemsControl.Resources>

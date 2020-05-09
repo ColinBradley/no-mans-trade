@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 using NoMansTrade.Core.Model;
 
@@ -14,8 +15,10 @@ namespace NoMansTrade.App.ViewModels
             this.SellItem = bestSellable.item;
             this.SellLocation = bestSellable.location;
 
-            this.ProfitAmount = (this.SellItem.Price * this.BuyItem.Quantity) - (this.BuyItem.Price * this.BuyItem.Quantity);
-            this.Profit = $"{this.ProfitAmount.ToString("N", System.Globalization.CultureInfo.CurrentCulture)} Units";
+            this.CostAmount = this.BuyItem.Price * this.BuyItem.Quantity;
+            this.Cost = $"{this.CostAmount.ToString("N", CultureInfo.CurrentCulture)} Units";
+            this.ProfitAmount = (this.SellItem.Price * this.BuyItem.Quantity) - this.CostAmount;
+            this.Profit = $"{this.ProfitAmount.ToString("N", CultureInfo.CurrentCulture)} Units";
         }
 
         public Item BuyItem { get; }
@@ -25,6 +28,10 @@ namespace NoMansTrade.App.ViewModels
         public Item SellItem { get; }
 
         public Location SellLocation { get; }
+        
+        public int CostAmount { get; }
+        
+        public string Cost { get; }
 
         public int ProfitAmount { get; }
 
