@@ -33,8 +33,16 @@ namespace NoMansTrade.App.Support
 
                 mValue = value;
 
-                mDispatcher.BeginInvoke(
-                    () => this.PropertyChanged?.Invoke(this, sValueArgs));
+                if (mDispatcher.CheckAccess())
+                {
+                    this.PropertyChanged?.Invoke(this, sValueArgs);
+                }
+                else
+                {
+                    mDispatcher.BeginInvoke(
+                        () => this.PropertyChanged?.Invoke(this, sValueArgs));
+                }
+
             }
         }
     }
