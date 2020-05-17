@@ -79,11 +79,11 @@ namespace NoMansTrade.App.ViewModels
 
         public ReadOnlyObservableCollection<Image> Images { get; }
 
-        public ICommand NextImage { get; }
+        public NextImageCommand NextImage { get; }
 
-        public ICommand PreviousImage { get; }
+        public PreviousImageCommand PreviousImage { get; }
 
-        public ICommand AnalyzeImage { get; }
+        public AnalyzeImageCommand AnalyzeImage { get; }
 
 
         private void Load()
@@ -123,9 +123,9 @@ namespace NoMansTrade.App.ViewModels
         {
             this.Current.Value = mImagesSource.LastOrDefault();
 
-            if (!mIsInitializing && mSettings.AutoScanNewImages.Value)
+            if (!mIsInitializing && mSettings.AutoScanNewImages.Value && this.AnalyzeImage.CanExecute())
             {
-                this.AnalyzeImage.Execute(null);
+                this.AnalyzeImage.Execute();
             }
         }
 
@@ -159,6 +159,12 @@ namespace NoMansTrade.App.ViewModels
                 var newOrder = mImagesSource.OrderBy(i => i.Date).ToArray();
                 for (var index = 0; index < newOrder.Length; index++)
                 {
+                    if (mImagesSource[index] == newOrder[index])
+                    {
+                        // Avoid setting the same value, as that raises a replace event ¬_¬
+                        continue;
+                    }
+
                     mImagesSource[index] = newOrder[index];
                 }
             }

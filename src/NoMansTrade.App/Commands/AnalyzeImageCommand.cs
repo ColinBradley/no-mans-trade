@@ -28,14 +28,14 @@ namespace NoMansTrade.App.Commands
             images.Current.PropertyChanged += this.ImagesCurrent_PropertyChanged;
         }
 
-        public bool CanExecute(object parameter)
+        public bool CanExecute()
         {
             return mImages.Current.Value != null
                 && !mImages.Current.Value.IsAnalyzing.Value
                 && !mImages.Current.Value.IsAnalyzed.Value;
         }
 
-        public void Execute(object parameter)
+        public void Execute()
         {
             var dispatcher = Dispatcher.CurrentDispatcher;
             var imageViewModel = mImages.Current.Value!;
@@ -140,6 +140,16 @@ namespace NoMansTrade.App.Commands
                 mCurrentImageModel.IsAnalyzed.PropertyChanged -= this.IsAnalyzed_PropertyChanged;
                 mCurrentImageModel.IsAnalyzing.PropertyChanged -= this.IsAnalyzed_PropertyChanged;
             }
+        }
+
+        bool ICommand.CanExecute(object parameter)
+        {
+            return this.CanExecute();
+        }
+
+        void ICommand.Execute(object parameter)
+        {
+            this.Execute();
         }
     }
 }
