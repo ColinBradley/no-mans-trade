@@ -26,7 +26,7 @@ namespace NoMansTrade.Core.Serialization
         public static async Task<Location[]> Parse(Stream data)
         {
             using var reader = new StreamReader(data, Encoding.UTF8, leaveOpen: true);
-            var json = await reader.ReadToEndAsync();
+            var json = await reader.ReadToEndAsync().ConfigureAwait(false);
 
             return JsonConvert.DeserializeObject<Location[]>(json, Settings);
         }

@@ -18,7 +18,6 @@
             <Button Content="Previous" Command="{Binding PreviousImage}"/>
             <Button Content="Next" Command="{Binding NextImage}"/>
             <Button Content="Analyze" Command="{Binding AnalyzeImage}"/>
-            <Button Content="Ignore" Command="{Binding IgnoreImage}"/>
             
             <TextBlock VerticalAlignment="Center"
                        FontWeight="Bold"

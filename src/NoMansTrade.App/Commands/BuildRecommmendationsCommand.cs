@@ -27,12 +27,12 @@ namespace NoMansTrade.App.Commands
             mRecommendationsViewModel = recommendations;
         }
 
-        public bool CanExecute(object parameter)
+        public bool CanExecute(object? parameter)
         {
             return true;
         }
 
-        public void Execute(object parameter)
+        public void Execute(object? parameter)
         {
             var buying = new Dictionary<string, List<(Item item, Location location)>>(StringComparer.OrdinalIgnoreCase);
             var selling = new Dictionary<string, List<(Item item, Location location)>>(StringComparer.OrdinalIgnoreCase);

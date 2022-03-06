@@ -21,19 +21,19 @@ namespace NoMansTrade.App.Commands
             ((INotifyCollectionChanged)images.Images).CollectionChanged += this.mImagesImages_CollectionChanged;
         }
 
-        public bool CanExecute(object parameter)
+        public bool CanExecute(object? parameter)
         {
             return mImages.Images.IndexOf(mImages.Current.Value!) > 0;
         }
 
-        public void Execute(object parameter)
+        public void Execute(object? parameter)
         {
             mImages.Current.Value = mImages.Images[mImages.Images.IndexOf(mImages.Current.Value!) - 1];
         }
 
-        private void mImagesImages_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        private void mImagesImages_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
         {
-            mDispatcher.BeginInvoke(
+            _ = mDispatcher.BeginInvoke(
                 () => this.CanExecuteChanged?.Invoke(this, EventArgs.Empty));
         }
 

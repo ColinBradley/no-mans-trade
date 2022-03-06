@@ -5,7 +5,7 @@ namespace NoMansTrade.App.Support
 {
     public class ObservableProperty<T> : INotifyPropertyChanged
     {
-        private static readonly PropertyChangedEventArgs sValueArgs = new PropertyChangedEventArgs(nameof(Value));
+        private static readonly PropertyChangedEventArgs sValueArgs = new(nameof(Value));
         private readonly Dispatcher mDispatcher;
         private T mValue;
 
@@ -39,7 +39,7 @@ namespace NoMansTrade.App.Support
                 }
                 else
                 {
-                    mDispatcher.BeginInvoke(
+                    _ = mDispatcher.BeginInvoke(
                         () => this.PropertyChanged?.Invoke(this, sValueArgs));
                 }
 

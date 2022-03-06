@@ -25,7 +25,7 @@ namespace NoMansTrade.App.ViewModels
 
         public ObservableProperty<string> StateMessage { get; } = new ObservableProperty<string>("Awaiting Analysis");
 
-        private void UpdateStateMessage(object sender, PropertyChangedEventArgs e)
+        private void UpdateStateMessage(object? sender, PropertyChangedEventArgs e)
         {
             if (this.IsAnalyzing.Value)
             {

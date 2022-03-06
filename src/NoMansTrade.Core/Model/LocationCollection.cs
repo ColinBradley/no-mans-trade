@@ -9,7 +9,7 @@ namespace NoMansTrade.Core.Model
 {
     public class LocationCollection : ObservableCollection<Location>
     {
-        private readonly Dictionary<string, Location> mLocationsByName = new Dictionary<string, Location>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, Location> mLocationsByName = new(StringComparer.OrdinalIgnoreCase);
 
         public void AddLocation(string name, Item[] items, bool isBuying)
         {

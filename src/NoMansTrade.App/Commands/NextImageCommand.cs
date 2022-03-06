@@ -22,24 +22,24 @@ namespace NoMansTrade.App.Commands
             images.Current.PropertyChanged += this.Current_PropertyChanged;
         }
 
-        private void Current_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private void Current_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             this.CanExecuteChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        public bool CanExecute(object parameter)
+        public bool CanExecute(object? parameter)
         {
             return mImages.Images.IndexOf(mImages.Current.Value!) < (mImages.Images.Count - 1);
         }
 
-        public void Execute(object parameter)
+        public void Execute(object? parameter)
         {
             mImages.Current.Value = mImages.Images[mImages.Images.IndexOf(mImages.Current.Value!) + 1];
         }
 
-        private void mImagesImages_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        private void mImagesImages_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
         {
-            mDispatcher.BeginInvoke(
+            _ = mDispatcher.BeginInvoke(
                 () => this.CanExecuteChanged?.Invoke(this, EventArgs.Empty));
         }
 

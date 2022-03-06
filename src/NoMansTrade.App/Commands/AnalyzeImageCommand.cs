@@ -1,4 +1,5 @@
-﻿using NoMansTrade.App.ViewModels;
+﻿using Microsoft.Azure.CognitiveServices.Vision.ComputerVision.Models;
+using NoMansTrade.App.ViewModels;
 using NoMansTrade.Core;
 using NoMansTrade.Core.Model;
 using SkiaSharp;
@@ -35,14 +36,14 @@ namespace NoMansTrade.App.Commands
                 && !mImages.Current.Value.IsAnalyzed.Value;
         }
 
-        public void Execute()
+        public Task Execute()
         {
             var dispatcher = Dispatcher.CurrentDispatcher;
             var imageViewModel = mImages.Current.Value!;
 
             imageViewModel.IsAnalyzing.Value = true;
 
-            Task.Run(async () =>
+            return Task.Run(async () =>
             {
                 var fullImage = SKImage.FromEncodedData(imageViewModel.FilePath);
 
@@ -103,10 +104,15 @@ namespace NoMansTrade.App.Commands
                     imageViewModel.IsAnalyzing.Value = false;
                     imageViewModel.IsAnalyzed.Value = false;
                 }
+                catch (Exception)
+                {
+                    imageViewModel.IsAnalyzing.Value = false;
+                    imageViewModel.IsAnalyzed.Value = false;
+                }
             });
         }
 
-        private void ImagesCurrent_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private void ImagesCurrent_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             this.CanExecuteChanged?.Invoke(this, EventArgs.Empty);
 
@@ -126,7 +132,7 @@ namespace NoMansTrade.App.Commands
             mCurrentImageModel.IsAnalyzing.PropertyChanged += this.IsAnalyzed_PropertyChanged;
         }
 
-        private void IsAnalyzed_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private void IsAnalyzed_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             this.CanExecuteChanged?.Invoke(this, EventArgs.Empty);
         }
@@ -142,14 +148,14 @@ namespace NoMansTrade.App.Commands
             }
         }
 
-        bool ICommand.CanExecute(object parameter)
+        bool ICommand.CanExecute(object? parameter)
         {
             return this.CanExecute();
         }
 
-        void ICommand.Execute(object parameter)
+        void ICommand.Execute(object? parameter)
         {
-            this.Execute();
+            _ = this.Execute();
         }
     }
 }

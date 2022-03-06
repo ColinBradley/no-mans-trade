@@ -57,9 +57,9 @@ namespace NoMansTrade.App.ViewModels
                 this.Images.Initiliaze();
                 this.Images.SetAnalyzedImages(config.AnalyzedNames);
             }
-            catch (Exception ex)
+            catch (JsonSerializationException ex)
             {
-                MessageBox.Show(ex.ToString(), "Error loading config");
+                _ = MessageBox.Show(ex.ToString(), "Error loading config");
             }
         }
 
@@ -83,7 +83,7 @@ namespace NoMansTrade.App.ViewModels
             } 
             catch (Exception ex)
             {
-                MessageBox.Show(ex.ToString(), "Error saving config");
+                _ = MessageBox.Show(ex.ToString(), "Error saving config");
             }
         }
     }

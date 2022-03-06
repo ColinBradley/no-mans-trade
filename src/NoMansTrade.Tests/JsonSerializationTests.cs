@@ -36,7 +36,7 @@ namespace NoMansTrade.Tests
 
             stream.Position = 0;
 
-            var parsed = await JsonSerialization.Parse(stream);
+            var parsed = await JsonSerialization.Parse(stream).ConfigureAwait(false);
 
             Assert.AreEqual(orignal.Length, parsed.Length);
             Assert.AreEqual(orignal[0].LastUpdate, parsed[0].LastUpdate);

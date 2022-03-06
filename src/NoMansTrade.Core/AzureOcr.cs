@@ -25,18 +25,18 @@ namespace NoMansTrade.Core
         {
             using var imageStream = File.OpenRead(imagePath);
 
-            return await this.ExtractTextAsync(imageStream);
+            return await ExtractTextAsync(imageStream).ConfigureAwait(false);
         }
 
         public async Task<string> ExtractTextAsync(Stream imageStream)
         {
-            var requestResult = await mClient.RecognizeTextInStreamAsync(imageStream, TextRecognitionMode.Printed);
-
-            // Poll for result
-            return await GetTextAsync(mClient, requestResult.OperationLocation);
+            var requestResult = await mClient.RecognizePrintedTextInStreamAsync(false, imageStream).ConfigureAwait(false);
+            return string.Join('\n', requestResult.Regions.SelectMany(l => l.Lines));
+            //// Poll for result
+            //return await GetTextAsync(mClient, requestResult.).ConfigureAwait(false);
         }
 
-        private static Regex sMatchQuantity = new Regex(@"\b^\d+\s*[|\\\/]\s*(\d+)\s*\b", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private static readonly Regex sMatchQuantity = new(@"\b^\d+\s*[|\\\/]\s*(\d+)\s*\b", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         public static (bool isBuying, Item[] items) ParseItems(string text)
         {
@@ -48,13 +48,13 @@ namespace NoMansTrade.Core
 
             while (index < text.Length)
             {
-                var current = text.Substring(index);
+                var current = text[index..];
 
                 if (current.StartsWith("Sell ", StringComparison.OrdinalIgnoreCase) || current.StartsWith("Buying ", StringComparison.OrdinalIgnoreCase))
                 {
                     index += current.IndexOf("For", StringComparison.OrdinalIgnoreCase) + 3;
 
-                    var (price, delta) = TakeNumbers(text.Substring(index));
+                    var (price, delta) = TakeNumbers(text[index..]);
                     if (delta <= 0)
                     {
                         index += 8;
@@ -71,7 +71,7 @@ namespace NoMansTrade.Core
                 {
                     index += current.IndexOf("For", StringComparison.OrdinalIgnoreCase) + 3;
 
-                    var (price, delta) = TakeNumbers(text.Substring(index));
+                    var (price, delta) = TakeNumbers(text[index..]);
                     if (delta <= 0)
                     {
                         index += 8;
@@ -106,7 +106,7 @@ namespace NoMansTrade.Core
                     endOfLine = current.Length - 1;
                 }
 
-                var line = current.Substring(0, endOfLine + 1);
+                var line = current[..(endOfLine + 1)];
                 index += line.Length;
 
                 if (IsNoise(line))
@@ -121,7 +121,7 @@ namespace NoMansTrade.Core
                 }
 
                 // -1 to remove newline at end
-                currentItem.Name = line.Substring(0, line.Length -1);
+                currentItem.Name = line[0..^1];
             }
 
             if (!isBuying)
@@ -132,7 +132,7 @@ namespace NoMansTrade.Core
                     if (item.Price == 0)
                     {
                         // glitch :/
-                        items.Remove(item);
+                        _ = items.Remove(item);
                     }
                     if (item.Quantity == 0)
                     {
@@ -140,7 +140,7 @@ namespace NoMansTrade.Core
                         continue;
                     }
 
-                    item.Price = item.Price / item.Quantity;
+                    item.Price /= item.Quantity;
                 }
             }
 
@@ -175,7 +175,7 @@ namespace NoMansTrade.Core
                     continue;
                 }
 
-                if (character == ',' || character == '.' || character == ' ')
+                if (character is ',' or '.' or ' ')
                 {
                     continue;
                 }
@@ -197,41 +197,21 @@ namespace NoMansTrade.Core
             return (-1, -1);
         }
 
-        private static LineType GuessType(string text)
-        {
-            if (text.StartsWith("Sell for", StringComparison.OrdinalIgnoreCase))
-            {
-                return LineType.SellFor;
-            }
+        //private static async Task<string> GetTextAsync(ComputerVisionClient computerVision, string operationLocation)
+        //{
+        //    var operationId = operationLocation[(operationLocation.LastIndexOf('/') + 1)..];
+        //    while (true)
+        //    {
+        //        var result = await computerVision.GetTextOperationResultAsync(operationId).ConfigureAwait(false);
+        //        Console.WriteLine("Polling for result...");
+        //        if (result.Status == TextOperationStatusCodes.Succeeded)
+        //        {
+        //            return string.Join("\n", result.RecognitionResult.Lines.Select(l => l.Text));
+        //        }
 
-            if (text.StartsWith("Buy for", StringComparison.OrdinalIgnoreCase))
-            {
-                return LineType.BuyFor;
-            }
-
-            if (text.Contains("/", StringComparison.OrdinalIgnoreCase))
-            {
-                return LineType.StockCount;
-            }
-
-            return LineType.Name;
-        }
-
-        private static async Task<string> GetTextAsync(ComputerVisionClient computerVision, string operationLocation)
-        {
-            var operationId = operationLocation.Substring(operationLocation.LastIndexOf('/') + 1);
-            while (true)
-            {
-                var result = await computerVision.GetTextOperationResultAsync(operationId);
-                Console.WriteLine("Polling for result...");
-                if (result.Status == TextOperationStatusCodes.Succeeded)
-                {
-                    return string.Join("\n", result.RecognitionResult.Lines.Select(l => l.Text));
-                }
-
-                await Task.Delay(500);
-            }
-        }
+        //        await Task.Delay(2000).ConfigureAwait(false);
+        //    }
+        //}
 
         public void Dispose()
         {

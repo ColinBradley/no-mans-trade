@@ -16,7 +16,7 @@ namespace NoMansTrade.App.ViewModels
 {
     internal class DirectoryImages : System.IDisposable
     {
-        private readonly ObservableCollection<Image> mImagesSource = new ObservableCollection<Image>();
+        private readonly ObservableCollection<Image> mImagesSource = new();
         private readonly Dispatcher mDispatcher;
         private readonly Settings mSettings;
 
@@ -52,16 +52,16 @@ namespace NoMansTrade.App.ViewModels
             mSettings.ScanDirectory.PropertyChanged += this.ScanDirectory_PropertyChanged;
         }
 
-        private void ScanDirectory_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private void ScanDirectory_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             this.Load();
         }
 
         public ObservableProperty<Image?> Current { get; private set; }
 
-        public ObservableProperty<SKRectI> ItemsRectangle { get; } = new ObservableProperty<SKRectI>(new SKRectI(200, 50, 400, 200));
+        public ObservableProperty<SKRectI> ItemsRectangle { get; } = new(new SKRectI(200, 50, 400, 200));
 
-        public ObservableProperty<SKRectI> LocationRectangle { get; } = new ObservableProperty<SKRectI>(new SKRectI(50, 250, 500, 350));
+        public ObservableProperty<SKRectI> LocationRectangle { get; } = new(new SKRectI(50, 250, 500, 350));
 
         internal void SetAnalyzedImages(string[] analyzedNames)
         {
@@ -84,7 +84,6 @@ namespace NoMansTrade.App.ViewModels
         public PreviousImageCommand PreviousImage { get; }
 
         public AnalyzeImageCommand AnalyzeImage { get; }
-
 
         private void Load()
         {
@@ -111,21 +110,20 @@ namespace NoMansTrade.App.ViewModels
             }
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Exception")]
-        private void mWatcher_Changed(object sender, FileSystemEventArgs e)
+        private void mWatcher_Changed(object? sender, FileSystemEventArgs e)
         {
             // Use a debouncer because at this point a file might not be fully written to
             // Or someone might be pasting in loads of files? Doesn't really matter - debouncing is lovely
             mReadImagesFromPathDebounced();
         }
 
-        private void Images_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        private void Images_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
         {
             this.Current.Value = mImagesSource.LastOrDefault();
 
             if (!mIsInitializing && mSettings.AutoScanNewImages.Value && this.AnalyzeImage.CanExecute())
             {
-                this.AnalyzeImage.Execute();
+                _ = this.AnalyzeImage.Execute();
             }
         }
 
@@ -153,7 +151,7 @@ namespace NoMansTrade.App.ViewModels
 
                 foreach (var unusedImage in unusedImages.Values)
                 {
-                    mImagesSource.Remove(unusedImage);
+                    _ = mImagesSource.Remove(unusedImage);
                 }
 
                 var newOrder = mImagesSource.OrderBy(i => i.Date).ToArray();
@@ -187,7 +185,7 @@ namespace NoMansTrade.App.ViewModels
                 cancelTokenSource?.Cancel();
                 cancelTokenSource = new CancellationTokenSource();
 
-                Task.Delay(milliseconds, cancelTokenSource.Token)
+                _ = Task.Delay(milliseconds, cancelTokenSource.Token)
                     .ContinueWith(t =>
                     {
                         if (t.IsCompletedSuccessfully)
